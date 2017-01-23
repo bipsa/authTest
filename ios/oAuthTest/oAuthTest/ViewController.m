@@ -13,6 +13,7 @@
     ADAuthenticationContext* authContext;
     NSDictionary *settings;
     NSString *accessToken;
+    ADUserInformation *userInformation;
 }
 @property (weak, nonatomic) IBOutlet UILabel *labelToken;
 
@@ -37,6 +38,8 @@
         accessToken = token;
         dispatch_async(dispatch_get_main_queue(), ^{
             self.labelToken.text = accessToken;
+            userInformation = [ADUserInformation userInformationWithIdToken:accessToken error:nil];
+            NSLog(@"URL ???? %@", userInformation.eMail);
         });
     }];
 }
@@ -45,10 +48,18 @@
 - (IBAction)button:(id)sender {
     NSLog(@"URL ???? %@", [settings objectForKey:@"finalUrl"]);
     NSURL *todoRestApiURL = [[NSURL alloc]initWithString:[settings objectForKey:@"finalUrl"]];
+    
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:todoRestApiURL];
     NSString *authHeader = [NSString stringWithFormat:@"Bearer %@", accessToken];
+    
+    
     [request addValue:authHeader forHTTPHeaderField:@"Authorization"];
     NSOperationQueue *queue = [[NSOperationQueue alloc]init];
+    [request setHTTPMethod:@"POST"];
+    NSString *postString = @"action=get_categories&key=42f06853304c3c9462781ca2eb24858a";
+    [request setHTTPBody:[postString dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    
     [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         NSString* serverResponse = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         NSLog(@"???? %@", serverResponse);
